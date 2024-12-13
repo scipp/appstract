@@ -20,7 +20,7 @@ _handler_providers = ProviderGroup()
 
 
 @_handler_providers.provider
-def provide_app_crafter_filehandler(
+def provide_appstract_filehandler(
     filename: FileHandlerBasePath, formatter: AppCrafterFileFormatter
 ) -> AppCrafterFileHandler:
     """Returns a file handler."""
@@ -33,7 +33,7 @@ class AppCrafterStreamHandler(RichHandler): ...
 
 
 @_handler_providers.provider
-def provide_app_crafter_streamhandler(
+def provide_appstract_streamhandler(
     highlighter: AppCrafterStreamHighlighter,
 ) -> AppCrafterStreamHandler:
     """Returns a ``RichHandler`` with :py:class:``AppCrafterStreamHighlighter``."""

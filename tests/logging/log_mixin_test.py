@@ -6,21 +6,21 @@ from pathlib import Path
 
 import pytest
 
-from app_crafter.constructors import Factory, ProviderGroup
-from app_crafter.logging import (
+from appstract.constructors import Factory, ProviderGroup
+from appstract.logging import (
     FileHandlerConfigured,
     LogDirectoryPath,
     LogFileName,
     get_logger,
 )
-from app_crafter.logging._test_helpers import LogMixinDummy, local_logger
-from app_crafter.logging.formatters import (
+from appstract.logging._test_helpers import LogMixinDummy, local_logger
+from appstract.logging.formatters import (
     provide_default_headers,
     provide_file_formatter,
 )
-from app_crafter.logging.handlers import AppCrafterFileHandler, FileHandler
-from app_crafter.logging.resources import FileHandlerBasePath
-from app_crafter.protocols import LoggingProtocol
+from appstract.logging.handlers import AppCrafterFileHandler, FileHandler
+from appstract.logging.resources import FileHandlerBasePath
+from appstract.protocols import LoggingProtocol
 
 
 def test_local_loggers():

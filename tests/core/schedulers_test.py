@@ -5,7 +5,7 @@ import time
 
 import pytest
 
-from app_crafter.schedulers import async_retry, retry
+from appstract.schedulers import async_retry, retry
 
 
 @pytest.mark.parametrize(

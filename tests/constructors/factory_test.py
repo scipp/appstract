@@ -6,13 +6,13 @@ from typing import Any, Optional, Union
 
 import pytest
 
-from app_crafter.constructors import (
+from appstract.constructors import (
     Factory,
     ProviderGroup,
     ProviderNotFoundError,
     SingletonProvider,
 )
-from app_crafter.constructors._test_helpers import (
+from appstract.constructors._test_helpers import (
     Adult,
     GoodTelling,
     Joke,

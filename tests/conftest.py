@@ -7,7 +7,7 @@ from typing import Literal
 
 import pytest
 
-from app_crafter.constructors import Factory
+from appstract.constructors import Factory
 
 
 def pytest_addoption(parser: pytest.Parser):
@@ -32,7 +32,7 @@ def local_logger() -> Generator[Literal[True], None, None]:
 
     It will help a test not to interfere other tests.
     """
-    from app_crafter.logging._test_helpers import local_logger as _local_logger
+    from appstract.logging._test_helpers import local_logger as _local_logger
 
     with _local_logger():
         yield True
@@ -40,7 +40,7 @@ def local_logger() -> Generator[Literal[True], None, None]:
 
 @pytest.fixture
 def default_factory() -> Factory:
-    """Returns a Factory that has all default providers of ``app_crafter``."""
-    from app_crafter.logging.providers import log_providers
+    """Returns a Factory that has all default providers of ``appstract``."""
+    from appstract.logging.providers import log_providers
 
     return Factory(log_providers)

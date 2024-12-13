@@ -28,7 +28,7 @@ def get_logger(
     Retrieves a default logger and add ``stream_handler`` if ``verbose``.
 
     """
-    from app_crafter import __name__ as default_name
+    from appstract import __name__ as default_name
 
     logger = logging.getLogger(default_name)
     if verbose and not logger.handlers:

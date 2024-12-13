@@ -7,7 +7,7 @@ Note that additional imports need to be added for repositories that
 contain multiple packages.
 """
 
-import app_crafter as pkg
+import appstract as pkg
 
 
 def test_has_version():

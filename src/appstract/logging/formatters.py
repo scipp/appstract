@@ -34,7 +34,7 @@ class LogColumn:
 
     Examples
     --------
-    >>> from app_crafter.logging.formatters import LogColumn
+    >>> from appstract.logging.formatters import LogColumn
     >>> time_column = LogColumn(variable_name='asctime',
     ... min_length=8, title='TIME', style='{')
     >>> time_column.formatter
@@ -94,7 +94,7 @@ class LogHeader(OrderedDict[str, LogColumn]):
 
     Examples
     --------
-    >>> from app_crafter.logging.formatters import LogHeader, LogColumn
+    >>> from appstract.logging.formatters import LogHeader, LogColumn
     >>> time_column = LogColumn(variable_name='asctime',
     ... min_length=8, title='TIME', style='{')
     >>> app_name_column = LogColumn(variable_name='app_name',

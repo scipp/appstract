@@ -4,8 +4,8 @@ from typing import NewType
 
 import pytest
 
-from app_crafter.constructors import Factory, Provider, ProviderGroup, SingletonProvider
-from app_crafter.constructors._test_helpers import orange_joke
+from appstract.constructors import Factory, Provider, ProviderGroup, SingletonProvider
+from appstract.constructors._test_helpers import orange_joke
 
 decorating_provider_group = ProviderGroup()
 UsefulString = NewType("UsefulString", str)
