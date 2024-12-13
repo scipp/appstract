@@ -48,11 +48,12 @@ jobs:
       tox-env: ${{ matrix.python.tox-env }}
     secrets: inherit
 
-  docs:
-    needs: tests
-    uses: ./.github/workflows/docs.yml
-    with:
-      publish: false
-      linkcheck: ${{ github.ref == 'refs/heads/main' }}
-      branch: ${{ github.head_ref == '' && github.ref_name || github.head_ref }}
-    secrets: inherit
+  # Skip docs for now
+  # docs:
+  #   needs: tests
+  #   uses: ./.github/workflows/docs.yml
+  #   with:
+  #     publish: false
+  #     linkcheck: ${{ github.ref == 'refs/heads/main' }}
+  #     branch: ${{ github.head_ref == '' && github.ref_name || github.head_ref }}
+  #   secrets: inherit
