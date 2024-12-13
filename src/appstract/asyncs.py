@@ -177,7 +177,7 @@ class Application(LogMixin):
         self.logger = logger
         self.message_router = message_router
         self.daemons: list[DaemonMessageGeneratorProtocol] = [self.message_router.run]
-        self.register_handling_method(self.Stop, self.stop_tasks)
+        self.register_handler(self.Stop, self.stop_tasks)
         self._break = False
         super().__init__()
 
@@ -189,7 +189,7 @@ class Application(LogMixin):
             )
         self._break = True
 
-    def register_handling_method(
+    def register_handler(
         self, event_tp: type[MessageT], handler: Callable[[MessageT], Any]
     ) -> None:
         """Register handlers to the application message router."""
@@ -248,6 +248,21 @@ class Application(LogMixin):
 
         return {daemon: run_daemon(daemon) for daemon in self.daemons}
 
+    @contextmanager
+    def _handle_keyboard_interrupt(self):
+        _interrupted_count = 0
+        try:
+            yield
+        except KeyboardInterrupt as e:
+            if _interrupted_count < 1:
+                self.info("Received a keyboard interrupt. Exiting...")
+                self.info("Press Ctrl+C one more time to kill immediately.")
+                self.message_router.message_pipe.put_nowait(
+                    Application.Stop(content=None)
+                )
+            else:
+                raise e
+
     def run(self):
         """
         Register all handling methods and run all daemons.
@@ -267,23 +282,24 @@ class Application(LogMixin):
 
         from appstract.schedulers import temporary_event_loop
 
-        self.info('Start running %s...', self.__class__.__qualname__)
-        if self.tasks:
-            raise RuntimeError(
-                "Application is already running. "
-                "Cancel all tasks and clear them before running it again."
-            )
+        with self._handle_keyboard_interrupt():
+            self.info('Start running %s...', self.__class__.__qualname__)
+            if self.tasks:
+                raise RuntimeError(
+                    "Application is already running. "
+                    "Cancel all tasks and clear them before running it again."
+                )
 
-        with temporary_event_loop() as loop:
-            self.loop = loop
-            daemon_coroutines = self._create_daemon_coroutines()
-            daemon_tasks = {
-                daemon: loop.create_task(coro)
-                for daemon, coro in daemon_coroutines.items()
-            }
-            self.tasks.update(daemon_tasks)
-            if not loop.is_running():
-                loop.run_until_complete(asyncio.gather(*self.tasks.values()))
+            with temporary_event_loop() as loop:
+                self.loop = loop
+                daemon_coroutines = self._create_daemon_coroutines()
+                daemon_tasks = {
+                    daemon: loop.create_task(coro)
+                    for daemon, coro in daemon_coroutines.items()
+                }
+                self.tasks.update(daemon_tasks)
+                if not loop.is_running():
+                    loop.run_until_complete(asyncio.gather(*self.tasks.values()))
 
     def run_after_run(self):
         """
@@ -294,16 +310,17 @@ class Application(LogMixin):
         """
         import asyncio
 
-        self.info('Start running %s...', self.__class__.__qualname__)
-        if self.tasks:
-            raise RuntimeError(
-                "Application is already running. "
-                "Cancel all tasks and clear them before running it again."
-            )
-        self.loop = asyncio.get_event_loop()
-        daemon_coroutines = self._create_daemon_coroutines()
-        daemon_tasks = {
-            daemon: self.loop.create_task(coro)
-            for daemon, coro in daemon_coroutines.items()
-        }
-        self.tasks.update(daemon_tasks)
+        with self._handle_keyboard_interrupt():
+            self.info('Start running %s...', self.__class__.__qualname__)
+            if self.tasks:
+                raise RuntimeError(
+                    "Application is already running. "
+                    "Cancel all tasks and clear them before running it again."
+                )
+            self.loop = asyncio.get_event_loop()
+            daemon_coroutines = self._create_daemon_coroutines()
+            daemon_tasks = {
+                daemon: self.loop.create_task(coro)
+                for daemon, coro in daemon_coroutines.items()
+            }
+            self.tasks.update(daemon_tasks)

@@ -41,6 +41,9 @@ test = [
     "rich",
 ]
 
+[project.scripts]
+appstract-helloworld = "appstract.script:run_helloworld"
+
 [project.urls]
 "Bug Tracker" = "https://github.com/scipp/appstract/issues"
 "Documentation" = "https://scipp.github.io/appstract"
