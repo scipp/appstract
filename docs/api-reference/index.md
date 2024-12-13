@@ -1,22 +1,31 @@
 # API Reference
 
-## Classes
-
+## Protocols and Mixins
+Application interface protocols and matching mixins.
 ```{eval-rst}
-.. currentmodule:: appstract
+.. currentmodule:: appstract.protocols
 
 .. autosummary::
    :toctree: ../generated/classes
    :template: class-template.rst
    :recursive:
+
+   LoggingProtocol
+   LogMixin
+
 ```
 
-## Top-level functions
+## Free Functions
 
 ```{eval-rst}
+.. currentmodule:: appstract.schedulers
 .. autosummary::
    :toctree: ../generated/functions
    :recursive:
+
+   async_retry
+   retry
+
 ```
 
 ## Submodules
@@ -26,4 +35,9 @@
    :toctree: ../generated/modules
    :template: module-template.rst
    :recursive:
+
+   constructors
+   logging
+   schedulers
+
 ```
