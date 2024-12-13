@@ -151,8 +151,8 @@ class MessageRouter(LogMixin):
         await asyncio.sleep(0)
 
 
-class Application(LogMixin):
-    """Application class.
+class AsyncApplication(LogMixin):
+    """Asynchronous Application class.
 
     Main Responsibilities:
         - Create/retrieve event loop if needed.
@@ -258,7 +258,7 @@ class Application(LogMixin):
                 self.info("Received a keyboard interrupt. Exiting...")
                 self.info("Press Ctrl+C one more time to kill immediately.")
                 self.message_router.message_pipe.put_nowait(
-                    Application.Stop(content=None)
+                    AsyncApplication.Stop(content=None)
                 )
             else:
                 raise e

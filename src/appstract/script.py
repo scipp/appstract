@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from importlib.metadata import entry_points
 from typing import Protocol, TypeVar
 
-from .asyncs import Application, MessageProtocol, MessageRouter
+from .asyncs import AsyncApplication, MessageProtocol, MessageRouter
 from .constructors import (
     Factory,
     ProviderGroup,
@@ -80,7 +80,7 @@ class Narc(LogMixin):
             yield HelloWorldMessage(msg)
             await asyncio.sleep(1)
 
-        yield Application.Stop(content=None)
+        yield AsyncApplication.Stop(content=None)
 
 
 def run_helloworld():
@@ -90,7 +90,7 @@ def run_helloworld():
     factory = Factory(
         log_providers,
         ProviderGroup(
-            SingletonProvider(Application),
+            SingletonProvider(AsyncApplication),
             SingletonProvider(MessageRouter),
             Echo,
             Narc,
@@ -99,7 +99,7 @@ def run_helloworld():
 
     with multiple_constant_providers(factory, parameters):
         factory[AppLogger].setLevel(arg_name_space.log_level.upper())
-        app = factory[Application]
+        app = factory[AsyncApplication]
         echo = factory[Echo]
         narc = factory[Narc]
 
