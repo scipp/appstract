@@ -3,8 +3,8 @@
 
 import pytest
 
-from app_crafter.constructors import Empty, UnknownType
-from app_crafter.constructors.inspectors import DependencySpec, ProductSpec
+from appstract.constructors import Empty, UnknownType
+from appstract.constructors.inspectors import DependencySpec, ProductSpec
 
 
 def test_product_spec_compare():

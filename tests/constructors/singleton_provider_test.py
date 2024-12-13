@@ -4,7 +4,7 @@ import random
 
 import pytest
 
-from app_crafter.constructors import (
+from appstract.constructors import (
     SingletonProvider,
     SingletonProviderCalledWithDifferentArgs,
 )

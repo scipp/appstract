@@ -7,9 +7,9 @@ from unittest.mock import patch
 
 import pytest
 
-from app_crafter.constructors import Factory
-from app_crafter.logging.handlers import AppCrafterFileHandler
-from app_crafter.logging.resources import (
+from appstract.constructors import Factory
+from appstract.logging.handlers import AppCrafterFileHandler
+from appstract.logging.resources import (
     FileHandlerBasePath,
     LogDirectoryPath,
     LogFileExtension,
@@ -33,7 +33,7 @@ def real_now():
 
 @pytest.fixture
 def mock_now(real_now):
-    return patch("app_crafter.logging.resources.datetime.now", return_value=real_now)
+    return patch("appstract.logging.resources.datetime.now", return_value=real_now)
 
 
 @pytest.mark.usefixtures('mock_now', 'real_now')

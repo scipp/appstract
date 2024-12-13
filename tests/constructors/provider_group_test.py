@@ -4,7 +4,7 @@ from typing import NewType
 
 import pytest
 
-from app_crafter.constructors import (
+from appstract.constructors import (
     ConflictProvidersError,
     MismatchingProductTypeError,
     Provider,
@@ -13,7 +13,7 @@ from app_crafter.constructors import (
     ProviderNotFoundError,
     SingletonProvider,
 )
-from app_crafter.constructors._test_helpers import (
+from appstract.constructors._test_helpers import (
     GoodTelling,
     Joke,
     give_a_good_telling,

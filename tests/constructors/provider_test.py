@@ -4,13 +4,13 @@ from typing import Union
 
 import pytest
 
-from app_crafter.constructors import (
+from appstract.constructors import (
     InsufficientAnnotationError,
     Provider,
     SingletonProvider,
     SingletonProviderCalledWithDifferentArgs,
 )
-from app_crafter.constructors._test_helpers import (
+from appstract.constructors._test_helpers import (
     Adult,
     GoodTelling,
     Joke,
@@ -20,7 +20,7 @@ from app_crafter.constructors._test_helpers import (
     make_another_joke,
     orange_joke,
 )
-from app_crafter.constructors.providers import UnknownProvider, UnknownProviderCalled
+from appstract.constructors.providers import UnknownProvider, UnknownProviderCalled
 
 
 def test_provider_function_call():
