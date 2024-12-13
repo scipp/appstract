@@ -35,8 +35,10 @@ dependencies = [
 dynamic = ["version"]
 
 [project.optional-dependencies]
+all = ["rich"]
 test = [
     "pytest",
+    "rich",
 ]
 
 [project.urls]
