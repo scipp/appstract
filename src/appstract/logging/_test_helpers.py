@@ -8,7 +8,7 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
 
-from ..protocols import LogMixin
+from ..mixins import LogMixin
 
 
 @contextmanager
