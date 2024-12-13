@@ -22,7 +22,8 @@ def test_product_spec_compare_false():
 def test_product_spec_compare_with_wrong_type_raises():
     _seed_spec = ProductSpec(int)
     with pytest.raises(NotImplementedError):
-        assert _seed_spec is not int
+        assert _seed_spec != int  # noqa: E721
+        # This test is for testing if the comparison is implemented correctly
 
 
 def test_nested_product_spec_not_allowed():
