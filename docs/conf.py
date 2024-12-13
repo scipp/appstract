@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.abspath('.'))
 logger = logging.getLogger(__name__)
 
 # General information about the project.
-project = 'App Crafter'
+project = 'Appstract'
 copyright = '2024 Scipp contributors'
 author = 'Scipp contributors'
 
@@ -91,7 +91,7 @@ typehints_defaults = 'comma'
 typehints_use_rtype = False
 
 
-sciline_domain_types_prefix = 'app-crafter'
+sciline_domain_types_prefix = 'appstract'
 sciline_domain_types_aliases = {
     'scipp._scipp.core.DataArray': 'scipp.DataArray',
     'scipp._scipp.core.Dataset': 'scipp.Dataset',
@@ -120,7 +120,7 @@ master_doc = 'index'
 #
 
 try:
-    release = get_version("app-crafter")
+    release = get_version("appstract")
     version = ".".join(release.split('.')[:3])  # CalVer
 except PackageNotFoundError:
     logger.info(
@@ -171,19 +171,19 @@ html_theme_options = {
     "icon_links": [
         {
             "name": "GitHub",
-            "url": "https://github.com/scipp/app-crafter",
+            "url": "https://github.com/scipp/appstract",
             "icon": "fa-brands fa-github",
             "type": "fontawesome",
         },
         {
             "name": "PyPI",
-            "url": "https://pypi.org/project/app-crafter/",
+            "url": "https://pypi.org/project/appstract/",
             "icon": "fa-brands fa-python",
             "type": "fontawesome",
         },
         {
             "name": "Conda",
-            "url": "https://anaconda.org/scipp/app-crafter",
+            "url": "https://anaconda.org/scipp/appstract",
             "icon": "fa-custom fa-anaconda",
             "type": "fontawesome",
         },
@@ -198,7 +198,7 @@ html_sidebars = {
     "**": ["sidebar-nav-bs", "page-toc"],
 }
 
-html_title = "App Crafter"
+html_title = "Appstract"
 html_logo = "_static/logo.svg"
 html_favicon = "_static/favicon.ico"
 
@@ -212,7 +212,7 @@ html_js_files = ["anaconda-icon.js"]
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'app-crafterdoc'
+htmlhelp_basename = 'appstractdoc'
 
 # -- Options for Matplotlib in notebooks ----------------------------------
 

@@ -6,8 +6,8 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "app-crafter"
-description = "Python application craft helper tools."
+name = "appstract"
+description = "Python application construction helper."
 authors = [{ name = "Scipp contributors" }]
 license = { file = "LICENSE" }
 readme = "README.md"
@@ -42,9 +42,9 @@ test = [
 ]
 
 [project.urls]
-"Bug Tracker" = "https://github.com/scipp/app-crafter/issues"
-"Documentation" = "https://scipp.github.io/app-crafter"
-"Source" = "https://github.com/scipp/app-crafter"
+"Bug Tracker" = "https://github.com/scipp/appstract/issues"
+"Documentation" = "https://scipp.github.io/appstract"
+"Source" = "https://github.com/scipp/appstract"
 
 [tool.setuptools_scm]
 
@@ -78,7 +78,7 @@ ignore = [
     "COM812", "COM819", "D206", "D300", "E111", "E114", "E117", "ISC001", "ISC002", "Q000", "Q001", "Q002", "Q003", "W191",
 ]
 fixable = ["B010", "I001", "PT001", "RUF022"]
-isort.known-first-party = ["app-crafter"]
+isort.known-first-party = ["appstract"]
 pydocstyle.convention = "numpy"
 
 [tool.ruff.lint.per-file-ignores]

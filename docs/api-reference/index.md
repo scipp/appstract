@@ -3,7 +3,7 @@
 ## Classes
 
 ```{eval-rst}
-.. currentmodule:: app-crafter
+.. currentmodule:: appstract
 
 .. autosummary::
    :toctree: ../generated/classes

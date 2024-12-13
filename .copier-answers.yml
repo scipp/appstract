@@ -1,13 +1,13 @@
 # Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
 _commit: 4180f34
 _src_path: gh:scipp/copier_template
-description: Python application craft helper tools.
+description: Python application construction helper.
 max_python: '3.12'
 min_python: '3.10'
 namespace_package: ''
-nightly_deps: ''
+nightly_deps: Textualize/rich
 orgname: scipp
-prettyname: App Crafter
-projectname: app-crafter
+prettyname: Appstract
+projectname: appstract
 related_projects: ''
 year: 2024

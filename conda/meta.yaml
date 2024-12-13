@@ -1,5 +1,5 @@
 package:
-  name: app-crafter
+  name: appstract
 
   version: {{ GIT_DESCRIBE_TAG }}
 
@@ -27,7 +27,7 @@ requirements:
 
 test:
   imports:
-    - app-crafter
+    - appstract
   requires:
 
   {# Conda does not allow spaces between package name and version, so remove them #}
@@ -49,9 +49,9 @@ build:
     - python -m pip install .
 
 about:
-  home: https://github.com/scipp/app-crafter
+  home: https://github.com/scipp/appstract
   license: BSD-3-Clause
-  summary: Python application craft helper tools.
-  description: Python application craft helper tools.
-  dev_url: https://github.com/scipp/app-crafter
-  doc_url: https://scipp.github.io/app-crafter
+  summary: Python application construction helper.
+  description: Python application construction helper.
+  dev_url: https://github.com/scipp/appstract
+  doc_url: https://scipp.github.io/appstract
