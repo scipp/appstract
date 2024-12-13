@@ -173,7 +173,7 @@ class Application(LogMixin):
         import asyncio
 
         self.loop: asyncio.AbstractEventLoop
-        self.tasks: list[asyncio.Task] = []
+        self.tasks: dict[Callable, asyncio.Task] = {}
         self.logger = logger
         self.message_router = message_router
         self.daemons: list[DaemonMessageGeneratorProtocol] = [self.message_router.run]
@@ -206,8 +206,10 @@ class Application(LogMixin):
 
     def cancel_all_tasks(self) -> None:
         """Cancel all tasks."""
-        for task in self.tasks:
+        for task in self.tasks.values():
             task.cancel()
+
+        self.tasks.clear()
 
     @asynccontextmanager
     async def _daemon_wrapper(
@@ -232,7 +234,9 @@ class Application(LogMixin):
         else:
             self.info("Daemon %s completed.", daemon.__class__.__qualname__)
 
-    def _create_daemon_coroutines(self) -> list[Coroutine]:
+    def _create_daemon_coroutines(
+        self,
+    ) -> dict[DaemonMessageGeneratorProtocol, Coroutine]:
         async def run_daemon(daemon: DaemonMessageGeneratorProtocol):
             async with self._daemon_wrapper(daemon):
                 async for message in daemon():
@@ -242,7 +246,7 @@ class Application(LogMixin):
                         break
                     await asyncio.sleep(0)
 
-        return [run_daemon(daemon) for daemon in self.daemons]
+        return {daemon: run_daemon(daemon) for daemon in self.daemons}
 
     def run(self):
         """
@@ -273,9 +277,13 @@ class Application(LogMixin):
         with temporary_event_loop() as loop:
             self.loop = loop
             daemon_coroutines = self._create_daemon_coroutines()
-            self.tasks.extend([loop.create_task(coro) for coro in daemon_coroutines])
+            daemon_tasks = {
+                daemon: loop.create_task(coro)
+                for daemon, coro in daemon_coroutines.items()
+            }
+            self.tasks.update(daemon_tasks)
             if not loop.is_running():
-                loop.run_until_complete(asyncio.gather(*self.tasks))
+                loop.run_until_complete(asyncio.gather(*self.tasks.values()))
 
     def run_after_run(self):
         """
@@ -294,4 +302,8 @@ class Application(LogMixin):
             )
         self.loop = asyncio.get_event_loop()
         daemon_coroutines = self._create_daemon_coroutines()
-        self.tasks.extend([self.loop.create_task(coro) for coro in daemon_coroutines])
+        daemon_tasks = {
+            daemon: self.loop.create_task(coro)
+            for daemon, coro in daemon_coroutines.items()
+        }
+        self.tasks.update(daemon_tasks)
