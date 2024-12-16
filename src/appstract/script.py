@@ -71,22 +71,25 @@ class HelloWorldMessage:
 class Echo(LogMixin):
     logger: AppLogger
 
-    async def echo(self, msg: EventMessageProtocol) -> None:
-        await asyncio.sleep(0.5)
+    async def async_echo(self, msg: EventMessageProtocol) -> None:
+        await asyncio.sleep(1)
         self.error(msg.content)
+        await asyncio.sleep(1)
 
     def sync_echo(self, msg: EventMessageProtocol) -> None:
-        time.sleep(0.5)
+        time.sleep(1)
         self.error(msg.content)
+        time.sleep(1)
 
 
 class Narc(LogMixin):
     logger: AppLogger
 
-    async def shout(self) -> AsyncGenerator[EventMessageProtocol, None]:
+    async def async_shout(self) -> AsyncGenerator[EventMessageProtocol, None]:
         self.info("Going to shout hello world 3 times...")
         messages = ("Hello World", "Heelllloo World!", "Heeelllllloooo World!")
         for msg in messages:
+            await asyncio.sleep(1)
             self.info(msg)
             yield HelloWorldMessage(msg)
             await asyncio.sleep(1)
@@ -97,6 +100,7 @@ class Narc(LogMixin):
         self.info("Going to shout hello world 3 times...")
         messages = ("Hello World", "Heelllloo World!", "Heeelllllloooo World!")
         for msg in messages:
+            time.sleep(1)
             self.info(msg)
             yield HelloWorldMessage(msg)
             time.sleep(1)
@@ -124,10 +128,10 @@ def run_async_helloworld():
         narc = factory[Narc]
 
         # Handlers
-        app.register_handler(HelloWorldMessage, echo.echo)
+        app.register_handler(HelloWorldMessage, echo.async_echo)
 
         # Daemons
-        app.register_daemon(narc.shout)
+        app.register_daemon(narc.async_shout)
         app.run()
 
 

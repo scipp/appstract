@@ -1,8 +1,9 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright (c) 2024 Scipp contributors (https://github.com/scipp)
-"""Asynchronous application components."""
+"""Event-driven application components."""
 
 import asyncio
+from abc import ABC, abstractmethod
 from collections.abc import AsyncGenerator, Awaitable, Callable, Coroutine, Generator
 from contextlib import asynccontextmanager, contextmanager
 from dataclasses import dataclass
@@ -79,7 +80,7 @@ class AsyncDaemonMessageGeneratorProtocol(Protocol):
 
 
 MessageT = TypeVar("MessageT", bound=EventMessageProtocol)
-HandlerT = TypeVar("HandlerT", bound=Callable)
+HandlerT = TypeVar("HandlerT", Callable, Awaitable)
 
 
 class MessageRouter(LogMixin):
@@ -115,14 +116,13 @@ class MessageRouter(LogMixin):
     def _register(
         self,
         *,
-        handler_list: dict[type[MessageT], list[HandlerT]],
+        handler_map: dict[type[MessageT], list[HandlerT]],
         event_tp: type[MessageT],
         handler: HandlerT,
     ):
-        if event_tp in handler_list:
-            handler_list[event_tp].append(handler)
-        else:
-            handler_list[event_tp] = [handler]
+        existing_list = handler_map.setdefault(event_tp, [])
+        if handler not in existing_list:
+            existing_list.append(handler)
 
     def register_handler(
         self,
@@ -130,11 +130,11 @@ class MessageRouter(LogMixin):
         handler: Callable[[MessageT], Any] | Callable[[MessageT], Awaitable[Any]],
     ):
         if asyncio.iscoroutinefunction(handler):
-            handler_list = self.awaitable_handlers
+            handler_map = self.awaitable_handlers
         else:
-            handler_list = self.handlers
+            handler_map = self.handlers
 
-        self._register(handler_list=handler_list, event_tp=event_tp, handler=handler)
+        self._register(handler_map=handler_map, event_tp=event_tp, handler=handler)
 
     def _collect_results(self, result: Any) -> list[EventMessageProtocol]:
         """Append or extend ``result`` to ``self.message_pipe``.
@@ -148,7 +148,8 @@ class MessageRouter(LogMixin):
         else:
             return []
 
-    def sync_route(self, message: EventMessageProtocol) -> None:
+    def route(self, message: EventMessageProtocol) -> None:
+        """Route the message to the appropriate handlers."""
         # Synchronous handlers
         results = []
         for handler in (handlers := self.handlers.get(type(message), [])):
@@ -164,6 +165,7 @@ class MessageRouter(LogMixin):
             self.message_pipe.put(result)
 
     async def async_route(self, message: EventMessageProtocol) -> None:
+        """Asynchronously route the message to the appropriate handlers."""
         # Synchronous handlers
         results = []
         for handler in (handlers := self.handlers.get(type(message), [])):
@@ -186,6 +188,16 @@ class MessageRouter(LogMixin):
         for result in results:
             self.message_pipe.put(result)
 
+    def run(self) -> Generator[EventMessageProtocol | None, None]:
+        """Message router daemon."""
+        while True:
+            if self.message_pipe.empty():
+                yield
+            while not self.message_pipe.empty():
+                self.route(self.message_pipe.get())
+                yield
+            yield
+
     async def async_run(self) -> AsyncGenerator[EventMessageProtocol | None, None]:
         """Message router daemon."""
         while True:
@@ -196,22 +208,12 @@ class MessageRouter(LogMixin):
                 await self.async_route(self.message_pipe.get())
             yield
 
-    def sync_run(self) -> Generator[EventMessageProtocol | None, None]:
-        """Message router daemon."""
-        while True:
-            if self.message_pipe.empty():
-                yield
-            while not self.message_pipe.empty():
-                self.sync_route(self.message_pipe.get())
-                yield
-            yield
-
-    async def send_message_async(self, message: EventMessageProtocol) -> None:
-        self.message_pipe.put(message)
-        await asyncio.sleep(0)
-
     def send_message(self, message: EventMessageProtocol) -> None:
         self.message_pipe.put(message)
+
+    async def async_send_message(self, message: EventMessageProtocol) -> None:
+        self.message_pipe.put(message)
+        await asyncio.sleep(0)
 
 
 @dataclass
@@ -221,7 +223,18 @@ class StopEventMessage:
     content: Any
 
 
-class ApplicationMixin:
+class ApplicationInterface(ABC, LogMixin):
+    """Application interface."""
+
+    logger: AppLogger
+    message_router: MessageRouter
+
+    @abstractmethod
+    def cancel_all_tasks(self) -> None: ...
+
+    @abstractmethod
+    def register_daemon(self, daemon: Callable) -> None: ...
+
     def stop_tasks(self, message: EventMessageProtocol | None = None) -> None:
         self.info('Stop running application %s...', self.__class__.__name__)
         if message is not None and not isinstance(message, StopEventMessage):
@@ -236,18 +249,6 @@ class ApplicationMixin:
         """Register handlers to the application message router."""
         self.message_router.register_handler(event_tp, handler)
 
-    def register_daemon(
-        self,
-        daemon: DaemonMessageGeneratorProtocol | AsyncDaemonMessageGeneratorProtocol,
-    ) -> None:
-        """Register a daemon generator to the application.
-
-        Registered daemons will be scheduled in the event loop
-        as :func:`~Application.run` method is called.
-        The future of the daemon will be collected in the ``self.tasks`` list.
-        """
-        self.daemons.append(daemon)
-
     @contextmanager
     def _handle_keyboard_interrupt(self):
         _interrupted_count = 0
@@ -258,13 +259,13 @@ class ApplicationMixin:
                 self.info("Received a keyboard interrupt. Exiting...")
                 self.info("Press Ctrl+C one more time to kill immediately.")
                 self.message_router.message_pipe.put_nowait(
-                    AsyncApplication.Stop(content=None)
+                    StopEventMessage(content=None)
                 )
             else:
                 raise e
 
 
-class SyncApplication(ApplicationMixin, LogMixin):
+class SyncApplication(ApplicationInterface, LogMixin):
     """Synchronous Application class.
 
     Main Responsibilities:
@@ -278,9 +279,7 @@ class SyncApplication(ApplicationMixin, LogMixin):
         self.tasks: dict[Callable, Generator] = {}
         self.logger = logger
         self.message_router = message_router
-        self.daemons: list[DaemonMessageGeneratorProtocol] = [
-            self.message_router.sync_run
-        ]
+        self.daemons: list[DaemonMessageGeneratorProtocol] = [self.message_router.run]
         self.register_handler(StopEventMessage, self.stop_tasks)
         self._break = False
         super().__init__()
@@ -307,19 +306,19 @@ class SyncApplication(ApplicationMixin, LogMixin):
         self, daemon: DaemonMessageGeneratorProtocol
     ) -> Generator[None, None]:
         try:
-            self.info('Running daemon %s', daemon.__class__.__qualname__)
+            self.info('Running daemon %s', daemon.__qualname__)
             yield
         except Exception as e:
             self.error(f"Daemon {daemon} failed. Cancelling all other tasks...")
             # Break all daemon generator loops.
             self._break = True
             # Let other daemons/handlers clean up.
-            self.message_router.sync_route(StopEventMessage(None))
+            self.message_router.route(StopEventMessage(None))
             # Make sure all other async tasks are cancelled.
             self.cancel_all_tasks()
             raise e
         else:
-            self.info("Daemon %s completed.", daemon.__class__.__qualname__)
+            self.info("Daemon %s completed.", daemon.__qualname__)
 
     def _create_daemon_tasks(
         self,
@@ -365,10 +364,10 @@ class SyncApplication(ApplicationMixin, LogMixin):
                     try:
                         next(task)
                     except StopIteration:  # noqa: PERF203
-                        self.info("Daemon %s completed.", daemon.__class__.__qualname__)
+                        self.info("Removing completed daemon %s", daemon.__qualname__)
                         self.tasks.pop(daemon)
                         if not self.tasks:
-                            self.info("All daemons completed.")
+                            self.info("All daemons completed. Exiting...")
                             break
 
     def run_after_run(self):
@@ -376,7 +375,7 @@ class SyncApplication(ApplicationMixin, LogMixin):
         raise NotImplementedError("This method is only available for AsyncApplication.")
 
 
-class AsyncApplication(ApplicationMixin, LogMixin):
+class AsyncApplication(ApplicationInterface, LogMixin):
     """Asynchronous Application class.
 
     Main Responsibilities:
@@ -428,7 +427,7 @@ class AsyncApplication(ApplicationMixin, LogMixin):
         daemon: AsyncDaemonMessageGeneratorProtocol | DaemonMessageGeneratorProtocol,
     ) -> AsyncGenerator[None, None]:
         try:
-            self.info('Running daemon %s', daemon.__class__.__qualname__)
+            self.info('Running daemon %s', daemon.__qualname__)
             yield
         except Exception as e:
             # Make sure all other async tasks are cancelled.
@@ -444,7 +443,7 @@ class AsyncApplication(ApplicationMixin, LogMixin):
             self.cancel_all_tasks()
             raise e
         else:
-            self.info("Daemon %s completed.", daemon.__class__.__qualname__)
+            self.info("Daemon %s completed.", daemon.__qualname__)
 
     def _create_daemon_coroutines(
         self,
@@ -460,14 +459,14 @@ class AsyncApplication(ApplicationMixin, LogMixin):
                 if isinstance(generator, AsyncGenerator):
                     async for message in generator:
                         if message is not None:
-                            await self.message_router.send_message_async(message)
+                            await self.message_router.async_send_message(message)
                         if self._break:
                             break
                         await asyncio.sleep(0)
                 elif isinstance(generator, Generator):
                     for message in generator:
                         if message is not None:
-                            await self.message_router.send_message_async(message)
+                            await self.message_router.async_send_message(message)
                         if self._break:
                             break
                         await asyncio.sleep(0)
