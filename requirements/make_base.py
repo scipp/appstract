@@ -66,7 +66,10 @@ def as_nightly(repo: str) -> str:
             "--extra-index-url=https://pypi.org/simple\n"
             "--pre"
         )
-    return f"{repo} @ git+https://github.com/{org}/{repo}@main"
+    if org == 'Textualize' and repo == 'rich':
+        return f"{repo} @ git+https://github.com/{org}/{repo}@master"
+    else:
+        return f"{repo} @ git+https://github.com/{org}/{repo}@main"
 
 
 nightly = tuple(args.nightly.split(",") if args.nightly else [])

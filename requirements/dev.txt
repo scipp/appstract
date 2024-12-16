@@ -95,7 +95,7 @@ pydantic==2.10.3
     # via copier
 pydantic-core==2.27.1
     # via pydantic
-python-json-logger==3.2.0
+python-json-logger==3.2.1
     # via jupyter-events
 questionary==1.10.0
     # via copier

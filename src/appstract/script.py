@@ -22,6 +22,7 @@ from .event_driven import (
     SyncApplication,
 )
 from .logging import AppLogger
+from .logging.handlers import ShowPath
 from .logging.providers import log_providers
 from .mixins import LogMixin
 
@@ -41,6 +42,9 @@ def build_arg_parser(*sub_group_classes: type) -> argparse.ArgumentParser:
         type=str,
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
         default="INFO",
+    )
+    parser.add_argument(
+        '--no-path', help='Do not show path in log messages.', action='store_true'
     )
     for sub_group_class in sub_group_classes:
         if callable(add_arg := getattr(sub_group_class, "add_argument_group", None)):
@@ -109,7 +113,10 @@ class Narc(LogMixin):
 
 def run_async_helloworld():
     arg_name_space: argparse.Namespace = build_arg_parser().parse_args()
-    parameters = {argparse.Namespace: arg_name_space}
+    parameters = {
+        argparse.Namespace: arg_name_space,
+        ShowPath: not arg_name_space.no_path,
+    }
 
     factory = Factory(
         log_providers,
@@ -137,7 +144,10 @@ def run_async_helloworld():
 
 def run_sync_helloworld():
     arg_name_space: argparse.Namespace = build_arg_parser().parse_args()
-    parameters = {argparse.Namespace: arg_name_space}
+    parameters = {
+        argparse.Namespace: arg_name_space,
+        ShowPath: not arg_name_space.no_path,
+    }
 
     factory = Factory(
         log_providers,

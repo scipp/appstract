@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from logging import FileHandler
+from typing import NewType
 
 from rich.logging import RichHandler
 
@@ -32,10 +33,15 @@ def provide_appstract_filehandler(
 class AppCrafterStreamHandler(RichHandler): ...
 
 
+ShowPath = NewType("ShowPath", bool)
+DEFAULT_SHOW_PATH = ShowPath(True)
+
+
 @_handler_providers.provider
 def provide_appstract_streamhandler(
     highlighter: AppCrafterStreamHighlighter,
+    show_path: ShowPath = DEFAULT_SHOW_PATH,
 ) -> AppCrafterStreamHandler:
     """Returns a ``RichHandler`` with :py:class:``AppCrafterStreamHighlighter``."""
 
-    return AppCrafterStreamHandler(highlighter=highlighter)
+    return AppCrafterStreamHandler(highlighter=highlighter, show_path=show_path)
