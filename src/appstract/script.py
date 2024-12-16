@@ -2,17 +2,24 @@
 # Copyright (c) 2024 Scipp contributors (https://github.com/scipp)
 import argparse
 import asyncio
-from collections.abc import AsyncGenerator
+import time
+from collections.abc import AsyncGenerator, Generator
 from dataclasses import dataclass
 from importlib.metadata import entry_points
 from typing import Protocol, TypeVar
 
-from .asyncs import AsyncApplication, MessageProtocol, MessageRouter
 from .constructors import (
     Factory,
     ProviderGroup,
     SingletonProvider,
     multiple_constant_providers,
+)
+from .event_driven import (
+    AsyncApplication,
+    EventMessageProtocol,
+    MessageRouter,
+    StopEventMessage,
+    SyncApplication,
 )
 from .logging import AppLogger
 from .logging.providers import log_providers
@@ -64,15 +71,19 @@ class HelloWorldMessage:
 class Echo(LogMixin):
     logger: AppLogger
 
-    async def echo(self, msg: MessageProtocol) -> None:
+    async def echo(self, msg: EventMessageProtocol) -> None:
         await asyncio.sleep(0.5)
+        self.error(msg.content)
+
+    def sync_echo(self, msg: EventMessageProtocol) -> None:
+        time.sleep(0.5)
         self.error(msg.content)
 
 
 class Narc(LogMixin):
     logger: AppLogger
 
-    async def shout(self) -> AsyncGenerator[MessageProtocol, None]:
+    async def shout(self) -> AsyncGenerator[EventMessageProtocol, None]:
         self.info("Going to shout hello world 3 times...")
         messages = ("Hello World", "Heelllloo World!", "Heeelllllloooo World!")
         for msg in messages:
@@ -80,10 +91,19 @@ class Narc(LogMixin):
             yield HelloWorldMessage(msg)
             await asyncio.sleep(1)
 
-        yield AsyncApplication.Stop(content=None)
+        yield StopEventMessage(content=None)
+
+    def sync_shout(self) -> Generator[EventMessageProtocol, None, None]:
+        self.info("Going to shout hello world 3 times...")
+        messages = ("Hello World", "Heelllloo World!", "Heeelllllloooo World!")
+        for msg in messages:
+            self.info(msg)
+            yield HelloWorldMessage(msg)
+            time.sleep(1)
+        yield StopEventMessage(content=None)
 
 
-def run_helloworld():
+def run_async_helloworld():
     arg_name_space: argparse.Namespace = build_arg_parser().parse_args()
     parameters = {argparse.Namespace: arg_name_space}
 
@@ -108,4 +128,32 @@ def run_helloworld():
 
         # Daemons
         app.register_daemon(narc.shout)
+        app.run()
+
+
+def run_sync_helloworld():
+    arg_name_space: argparse.Namespace = build_arg_parser().parse_args()
+    parameters = {argparse.Namespace: arg_name_space}
+
+    factory = Factory(
+        log_providers,
+        ProviderGroup(
+            SingletonProvider(SyncApplication),
+            SingletonProvider(MessageRouter),
+            Echo,
+            Narc,
+        ),
+    )
+
+    with multiple_constant_providers(factory, parameters):
+        factory[AppLogger].setLevel(arg_name_space.log_level.upper())
+        app = factory[SyncApplication]
+        echo = factory[Echo]
+        narc = factory[Narc]
+
+        # Handlers
+        app.register_handler(HelloWorldMessage, echo.sync_echo)
+
+        # Daemons
+        app.register_daemon(narc.sync_shout)
         app.run()

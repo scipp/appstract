@@ -42,7 +42,8 @@ test = [
 ]
 
 [project.scripts]
-appstract-helloworld = "appstract.script:run_helloworld"
+appstract-async-helloworld = "appstract.script:run_async_helloworld"
+appstract-sync-helloworld = "appstract.script:run_sync_helloworld"
 
 [project.urls]
 "Bug Tracker" = "https://github.com/scipp/appstract/issues"
